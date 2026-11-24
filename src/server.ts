@@ -4,7 +4,7 @@ import { join, normalize, sep } from "node:path";
 import { allowLoginTry, createSession, passwordMatches, sessionCookie, sessionFrom } from "./auth.ts";
 import { config } from "./config.ts";
 import { chatWithFiles, GatewayError, type Msg } from "./llm.ts";
-import { readOffice } from "./office/read.ts";
+import { readOffice, UnusableFile } from "./office/read.ts";
 import { hasZipMagic, kindFromName } from "./office/zipguard.ts";
 import { remaining, takeChat } from "./ratelimit.ts";
 import { getFile, MIME, putFile, startSweeper, type StoredFile } from "./store.ts";
@@ -20,6 +20,7 @@ const T = {
   tooManyLogins: "ลองผิดหลายครั้งเกินไป รออีก 15 นาที",
   needLogin: "กรุณาใส่รหัสผ่าน",
   badType: "รองรับเฉพาะไฟล์ .docx .xlsx .pptx",
+  readFail: "อ่านไฟล์นี้ไม่ได้ — ลองเปิดใน Excel แล้วบันทึกใหม่ (Save As .xlsx) แล้วอัปโหลดอีกครั้ง",
   tooBig: (mb: number) => `ไฟล์ใหญ่เกิน ${mb} MB`,
   rate: (n: number, hhmm: string) => `ใช้ครบ ${n} ข้อความต่อชั่วโมงแล้ว ลองใหม่เวลา ${hhmm}`,
   aiDown: "ระบบ AI ไม่ตอบ ลองใหม่อีกครั้ง",
@@ -85,7 +86,8 @@ async function upload(req: Request, sid: string): Promise<Response> {
     read = await readOffice(kind, buf);
   } catch (e) {
     console.error("upload read failed:", (e as Error).message);
-    return err(400, T.badType);
+    // not a usable zip at all (unreadable / zip bomb) → badType; a real file we could not read → the honest readFail
+    return err(400, e instanceof UnusableFile ? T.badType : T.readFail);
   }
   const stored = putFile({ name: file.name, kind, buffer: buf, text: read.text, sid });
   const body: Record<string, unknown> = { fileId: stored.fileId, name: stored.name, kind, preview: read.preview };

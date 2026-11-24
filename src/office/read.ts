@@ -5,13 +5,29 @@ import type JSZip from "jszip";
 import { computeSheets, type Cell, type Computed } from "../formulas.ts";
 import type { Kind, Sheet } from "../store.ts";
 import { checkZip } from "./zipguard.ts";
+import { sanitizeXlsxForRead } from "./sanitize.ts";
 
 export const CONTEXT_LIMIT = 25000;
 
-export type ReadResult = { text: string; preview: string; sheets?: Sheet[]; computed?: Computed[] };
+export type ReadResult = {
+  text: string;
+  preview: string;
+  sheets?: Sheet[];
+  computed?: Computed[];
+  charts?: number;
+  comments?: number;
+};
+
+/** The upload is not a usable office zip at all (unreadable zip, zip bomb): the server answers badType. */
+export class UnusableFile extends Error {}
 
 export async function readOffice(kind: Kind, buf: Uint8Array): Promise<ReadResult> {
-  const zip = await checkZip(buf);
+  let zip: JSZip;
+  try {
+    zip = await checkZip(buf);
+  } catch (e) {
+    throw new UnusableFile((e as Error).message);
+  }
   if (kind === "docx") return readDocx(buf);
   if (kind === "pptx") return readPptx(zip);
   return readXlsx(buf);
@@ -107,10 +123,21 @@ function tsv(rows: (string | number | null)[][]): string {
 }
 
 async function readXlsx(buf: Uint8Array): Promise<ReadResult> {
+  // TASK-013: charts / comments can crash ExcelJS, so it reads a sanitized copy (cells untouched)
+  const clean = await sanitizeXlsxForRead(buf);
   const wb = new ExcelJS.Workbook();
-  await wb.xlsx.load(Buffer.from(buf) as any);
+  await wb.xlsx.load(Buffer.from(clean.buf) as any);
   const computed = computeSheets(sheetsFromWorkbook(wb));
   const parts: string[] = [];
+  if (clean.charts > 0) parts.push(`(ไฟล์นี้มีกราฟ ${clean.charts} อัน — ระบบอ่านเฉพาะข้อมูลในเซลล์ ไม่อ่านรูปกราฟ)`);
+  if (clean.comments > 0) {
+    if (clean.commentTexts.length) {
+      parts.push(`(มีคอมเมนต์ในเซลล์ ${clean.commentTexts.length} รายการ)`);
+      parts.push("comments:", ...clean.commentTexts);
+    } else {
+      parts.push(`(มีคอมเมนต์ในเซลล์ ${clean.comments} รายการ (ไม่ได้อ่าน))`);
+    }
+  }
   for (const s of computed) {
     parts.push(`Sheet: ${s.name}`);
     parts.push(tsv(s.rows));
@@ -120,5 +147,5 @@ async function readXlsx(buf: Uint8Array): Promise<ReadResult> {
     }
   }
   const sheets: Sheet[] = computed.map((s) => ({ name: s.name, rows: s.rows.slice(0, 20).map((r) => r.slice(0, 10)) }));
-  return finish(parts.join("\n"), { sheets, computed });
+  return finish(parts.join("\n"), { sheets, computed, charts: clean.charts, comments: clean.comments });
 }

@@ -176,7 +176,7 @@ describe("(c) chat via the mocked gateway", () => {
     // the gateway got the system prompt + the uploaded file's computed text
     expect(calls).toHaveLength(1);
     expect(calls[0].url).toBe("http://gateway.test/chat");
-    expect(calls[0].body).toMatchObject({ temperature: 0.3, max_tokens: 4000 });
+    expect(calls[0].body).toMatchObject({ temperature: 0.3, max_tokens: 8000 }); // TASK-014: 4000 → 8000
     expect(calls[0].body.provider).toBeUndefined();
     const sys = calls[0].body.messages.filter((m: any) => m.role === "system").map((m: any) => m.content).join("\n");
     expect(sys).toContain('<file name="known.xlsx" kind="xlsx">');
@@ -206,7 +206,7 @@ describe("(c) chat via the mocked gateway", () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(calls).toHaveLength(2);
-    expect(calls[1].body.messages.at(-1).content).toContain("your file-spec was invalid");
+    expect(calls[1].body.messages.at(-1).content).toContain("Your file-spec was cut off/invalid"); // TASK-014 wording
     expect(body.reply).toContain("สร้างไฟล์ไม่สำเร็จ");
     expect(body.files).toEqual([]);
   });
