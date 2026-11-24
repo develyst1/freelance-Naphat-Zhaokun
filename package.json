@@ -1,0 +1,23 @@
+{
+  "name": "freelance-naphat-zhaokun",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "bun src/server.ts",
+    "setup": "bun scripts/setup.ts",
+    "tunnel": "bun scripts/tunnel.ts",
+    "test": "bun test",
+    "mock": "bun dev/mock-api.ts"
+  },
+  "dependencies": {
+    "docx": "^9.16.0",
+    "exceljs": "^4.4.0",
+    "hyperformula": "^3.5.0",
+    "jszip": "^3.10.2",
+    "mammoth": "^1.13.0",
+    "pptxgenjs": "^4.0.1"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.4.5"
+  }
+}

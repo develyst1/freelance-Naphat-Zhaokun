@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>nichaphonAI · แชท AI ไฟล์ Office</title>
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <main id="login-view" class="login" hidden>
+    <form id="login-form" class="login-card" novalidate>
+      <div class="brand">
+        <h1 class="brand-name">nichaphonAI</h1>
+        <span class="brand-sub">แชท AI · ไฟล์ Office</span>
+      </div>
+      <p class="login-lede">ถาม-ตอบ อ่าน และสร้างไฟล์ Word, Excel, PowerPoint ด้วย AI</p>
+      <label for="password" class="login-label">รหัสผ่าน</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" required>
+      <p id="login-error" class="error-text" role="alert" hidden></p>
+      <button id="login-btn" type="submit" class="btn btn-primary btn-block">เข้าใช้งาน</button>
+    </form>
+  </main>
+
+  <div id="chat-view" class="chat" hidden>
+    <header class="chat-head">
+      <div class="chat-head-inner">
+        <div class="brand brand-small">
+          <span class="brand-name">nichaphonAI</span>
+          <span class="brand-sub">แชท AI · ไฟล์ Office</span>
+        </div>
+        <p id="remaining" class="remaining" aria-live="polite"></p>
+        <button id="new-chat" type="button" class="btn btn-ghost">เริ่มแชทใหม่</button>
+      </div>
+    </header>
+
+    <main class="scroll" id="scroll">
+      <section id="welcome" class="welcome">
+        <h2 class="welcome-title">เริ่มคุยได้เลย</h2>
+        <p class="welcome-lede">แนบไฟล์ .docx .xlsx .pptx ให้ช่วยอ่าน หรือสั่งให้สร้างไฟล์ใหม่</p>
+        <div class="examples">
+          <button type="button" class="example" data-prompt="สรุปไฟล์ Word ที่แนบให้หน่อย">สรุปไฟล์ Word ที่แนบให้หน่อย</button>
+          <button type="button" class="example" data-prompt="ทำ excel งบค่าใช้จ่าย 5 รายการ พร้อมสูตรรวมและค่าเฉลี่ย">ทำ excel งบค่าใช้จ่าย 5 รายการ พร้อมสูตรรวมและค่าเฉลี่ย</button>
+          <button type="button" class="example" data-prompt="ทำ ppt แนะนำบริษัท 5 หน้า">ทำ ppt แนะนำบริษัท 5 หน้า</button>
+          <button type="button" class="example" data-prompt="ไฟล์ Excel ที่แนบ ช่องไหนผลรวมสูงสุด">ไฟล์ Excel ที่แนบ ช่องไหนผลรวมสูงสุด</button>
+        </div>
+      </section>
+      <section id="messages" class="messages" aria-live="polite"></section>
+    </main>
+
+    <div class="dock">
+      <form id="composer" class="composer">
+        <ul id="chips" class="chips" hidden></ul>
+        <div class="composer-row">
+          <button id="attach" type="button" class="btn btn-ghost attach" aria-label="แนบไฟล์">
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" class="attach-icon">
+              <path d="M20.5 11.5l-8.2 8.2a5 5 0 0 1-7.1-7.1l8.2-8.2a3.3 3.3 0 0 1 4.7 4.7l-8.2 8.2a1.7 1.7 0 0 1-2.4-2.4l7.5-7.5"></path>
+            </svg>
+            <span class="attach-label">แนบไฟล์</span>
+          </button>
+          <input id="file-input" type="file" accept=".docx,.xlsx,.pptx" hidden>
+          <label for="input" class="visually-hidden">ข้อความ</label>
+          <textarea id="input" rows="1"></textarea>
+          <div id="mic-group" class="mic-group" hidden>
+            <button id="mic" type="button" class="btn btn-ghost btn-icon mic" aria-label="พูดเพื่อพิมพ์" aria-pressed="false"
+              title="เบราว์เซอร์จะส่งเสียงไปแปลงเป็นข้อความ (เช่น Google ใน Chrome)">
+              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" class="mic-icon">
+                <rect x="9" y="3" width="6" height="11" rx="3"></rect>
+                <path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7"></path>
+              </svg>
+            </button>
+            <button id="mic-lang" type="button" class="btn btn-ghost mic-lang">ไทย</button>
+          </div>
+          <button id="send" type="submit" class="btn btn-primary">ส่ง</button>
+        </div>
+      </form>
+      <footer class="note">เดโม — อย่าอัปโหลดข้อมูลส่วนตัว ข้อความถูกส่งไปยังผู้ให้บริการ AI</footer>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
